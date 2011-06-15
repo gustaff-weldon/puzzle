@@ -13,7 +13,7 @@ namespace =  function() {
 
 namespace("util");
 util.log = function() {
-	var args = Array.prototype.slice.call(arguments, 0); 
-	args.unshift(new Date().getTime()); 
-	console.log.apply(console, args);
+    var args = Array.prototype.slice.call(arguments, 0); 
+    args.unshift(new Date().getTime()); 
+    console.log.apply(console, args);
 }
