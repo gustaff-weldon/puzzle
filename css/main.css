@@ -53,20 +53,18 @@ table {
 /******************************************
  * RESET END
  */
+ 
 body {
-	font-size: 62.5%;
-	font-family: Arial, sans-serif;
-}
-h1 {
-	font-size: 2.4em;
-	font-weight: bold;
-	margin-bottom: 1em;
+    font-size: 62.5%;
+    font-family: Arial, sans-serif;
+    background: #000;
 }
 
 .puzzle-board {
-	width: 960px;
+    max-width: 960px;
+    margin: 20px auto;
 }
 
 .puzzle-board img {
-	max-width: 100%;
+    max-width: 100%;
 }
