@@ -29,7 +29,7 @@ PZ.view.Board.prototype = {
             var pieceEl = document.createElement("div");
             
             pieceEl.className = "puzzle-piece "
-                + "p" + piece.x + piece.y;
+                + "p" + piece.x + "_" + piece.y;
             pieceEl.style.width = piece.width + "px";
             pieceEl.style.height = piece.height + "px";
             pieceEl.style.left = piece.posX + "px";
