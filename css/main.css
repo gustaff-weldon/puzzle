@@ -38,8 +38,15 @@ body {
 .puzzle-board {
     max-width: 960px;
     margin: 20px auto;
+    position: relative;
 }
 
 .puzzle-board img {
     max-width: 100%;
+}
+
+.puzzle-piece {
+    position: absolute;
+    outline: 1px solid white;
+    background: transparent none no-repeat;
 }
