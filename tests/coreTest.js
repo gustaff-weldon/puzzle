@@ -1,9 +1,4 @@
 (function(){
-
-    function assertTrue (condition, msg) {
-        !condition && console.error(msg);
-    }
-
     // TESTS
     
     // check if util namespace is defined
