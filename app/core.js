@@ -12,8 +12,19 @@ namespace =  function() {
 };
 
 namespace("util");
+
 util.log = function() {
     var args = Array.prototype.slice.call(arguments, 0); 
     args.unshift(new Date().getTime()); 
     console.log.apply(console, args);
-}
+};
+
+util.mixin = function(target, source) {
+    if (typeof source == "object") {
+        for (var key in source) {
+            source.hasOwnProperty(key) && (target[key] = source[key]);
+        }
+    }
+    return target;
+};
+
