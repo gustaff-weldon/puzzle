@@ -5,12 +5,12 @@ PZ.Game  = function() {
 }
 
 PZ.Game.prototype.start = function() {
-    util.log("Game started");
     this.view = new PZ.view.Board(this);
         
     var pieces = this.calculatePieces(960, 640, 6, 4);
-    util.log("Pieces", pieces);
     this.view.setPhoto('./app/assets/test.jpg', pieces);
+    
+    this.fireEvent('started', {pieces: pieces});
 }
 
 PZ.Game.prototype.calculatePieces = function(photoWidth, photoHeight, countX, countY) {
@@ -34,6 +34,12 @@ PZ.Game.prototype.calculatePieces = function(photoWidth, photoHeight, countX, co
     
     return pieces;
 }
+util.mixin(PZ.Game.prototype, PZ.event.observable);
 
-
-new PZ.Game().start();
+(function() {
+    var game = new PZ.Game();
+    game.addEventListener('started', function(data) {
+        util.log("Game started", data);
+    });
+    game.start();
+}())

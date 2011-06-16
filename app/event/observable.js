@@ -1,9 +1,6 @@
 namespace("PZ.event");
 
-PZ.event.Observable = function() {
-}
-
-PZ.event.Observable.prototype = {
+PZ.event.observable = {
     listeners: {},
     
     addEventListener: function(eventName, listener) {
@@ -46,4 +43,3 @@ PZ.event.Observable.prototype = {
         }        
     }
 };
-PZ.event.Observable.prototype.constructor = PZ.event.Observable;
