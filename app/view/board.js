@@ -16,38 +16,31 @@ PZ.view.Board.prototype = {
     },
     
     setPhoto: function(photoPath, pieces) {
-        //this image shou
-        var img = document.createElement("img");
-        img.setAttribute('src', photoPath);
-        
-        this.boardEl.innerHTML = "";
-        this.boardEl.appendChild(img);
-        
-        if (pieces) {
-            this.buildPuzzle(photoPath, pieces);
+        var l = pieces.length, 
+            docFragment = document.createDocumentFragment();
+            
+        for (var i = 0; i < l; i++) {
+            docFragment.appendChild(this.buildPiece(photoPath, pieces[i]));
         }
+        this.boardEl.appendChild(docFragment);
     },
     
-    buildPuzzle: function(photoPath, pieces) {
-        //TODO use DocumentFragment
-        var l = pieces.length, piece, pieceEl;
-        for (var i = 0; i < l; i++) {
-            piece = pieces[i];
-            pieceEl = document.createElement("div");
+    buildPiece: function(photoPath, piece) {
+            var pieceEl = document.createElement("div");
+            
             pieceEl.className = "puzzle-piece "
-                + "p" + piece.x + piece.y;
+                + "p" + piece.x + "_" + piece.y;
             pieceEl.style.width = piece.width + "px";
             pieceEl.style.height = piece.height + "px";
             pieceEl.style.left = piece.posX + "px";
             pieceEl.style.top = piece.posY + "px";
             
             pieceEl.style.backgroundImage = "url(" + photoPath + ")";
-             pieceEl.style.backgroundPosition =  
+            pieceEl.style.backgroundPosition =  
                 " -" + piece.posX + "px"
                 + " -" + piece.posY + "px";
             
-            this.boardEl.appendChild(pieceEl);
-        }
+            return pieceEl;
     }
 };
 PZ.view.Board.prototype.constructor = PZ.view.Board;
