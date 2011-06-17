@@ -66,6 +66,7 @@ PZ.view.Board.prototype = {
     },
     
     markPieceHold: function(evt) {
+        evt.preventDefault();
         function markHold(node) {
             node.style.zIndex = "9999";
             node.style.outline = "2px solid white";
@@ -73,42 +74,67 @@ PZ.view.Board.prototype = {
             node.style.webkitBoxShadow = "10px 10px 10px black";
         }
         
-        var i, len; 
+        var node = null;
         if (evt.changedTouches) {
-            len = evt.changedTouches.length;
-            for (i = 0; i < len; i++) {
-                markHold(evt.changedTouches[i].target);
-            }
+            node = evt.changedTouches[0].target; 
+        } else {
+            node = evt.target;
         }
-        else {
-            markHold(evt.target);
-        }
+        markHold(node);
         
-        evt.preventDefault();
+//        var i, len; 
+//            len = evt.changedTouches.length;
+//            for (i = 0; i < len; i++) {
+//                markHold(evt.changedTouches[i].target);
+//            }
+//        }
+//        else {
+//            markHold(evt.target);
+//        }
+        
     },
     
     markPieceRelease: function(evt){
+        evt.preventDefault();
+        
         function markRelease(node){
             node.style.outline = "1px solid white";
             node.style.opacity = "1";
             node.style.zIndex = "1";
             node.style.webkitBoxShadow = "none";
+            
+            return {
+                id : node.id,
+                x : node.style.left,
+                y : node.style.top
+            };
         }
-        
-        var i, len;
+
+        var node = null, updatedNodes = []
         if (evt.changedTouches) {
-            len = evt.changedTouches.length;
-            for (i = 0; i < len; i++) {
-                markRelease(evt.changedTouches[i].target);
-            }
+            node = evt.changedTouches[0].target; 
+        } else {
+            node = evt.target;
         }
-        else {
-            markRelease(evt.target);
-        }
-        evt.preventDefault();
+        updatedNodes.push(markRelease(node));
+
+//        
+//        var i, len, node, updatedNodes = [];
+//        if (evt.changedTouches) {
+//            len = evt.changedTouches.length;
+//            for (i = 0; i < len; i++) {
+//                node = evt.changedTouches[i].target;
+//                updatedNodes.push(markRelease(node));
+//            }
+//        }
+//        else {
+//            updatedNodes.push(markRelease(evt.target));
+//        }
+        this.fireEvent('piecemove', {nodes : updatedNodes});
     },
     
     updatePiecePosition: function(evt) {
+        evt.preventDefault();
         var self = this;
         function markMove(touch) {
             var node = touch.target,
@@ -119,12 +145,16 @@ PZ.view.Board.prototype = {
         }
         
         if (evt.changedTouches) {
-            var len = evt.changedTouches.length,
-                i;
-            for (i = 0; i < len; i++) {
-                markMove(evt.changedTouches[i]);
-            }
+            markMove(evt.changedTouches[0])
         }
+        
+//        if (evt.changedTouches) {
+//            var len = evt.changedTouches.length,
+//                i;
+//            for (i = 0; i < len; i++) {
+//                markMove(evt.changedTouches[i]);
+//            }
+//        }
     }
 };
 util.mixin(PZ.view.Board.prototype, PZ.event.observable);
