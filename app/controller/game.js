@@ -10,7 +10,7 @@ PZ.Game.prototype = {
         this.model = this.buildModel();
         this.view = new PZ.view.Board(this);
         this.view.setPhoto(this.model);
-        this.view.addEventListener('piecemove', util.bind(this.updatePiece, this));
+        this.view.addEventListener('piecemove', util.bind(this.updatePieces, this));
         this.fireEvent('started', this.model);
     },
     
@@ -45,6 +45,12 @@ PZ.Game.prototype = {
         }
         
         return pieces;
+    },
+    
+    
+    updatePieces : function(data) {
+        var ids = data.nodes; 
+        util.log(ids.length + " piece(s) updated: " + ids);
     }
 };
 
