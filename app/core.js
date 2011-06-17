@@ -28,3 +28,27 @@ util.mixin = function(target, source) {
     return target;
 };
 
+//polyfill Function.prototype instead?
+util.bind = function(func, context) {
+    return function() {
+        func.apply(context, arguments);
+    }
+}
+
+util.isTouch = function() {
+    return ("ontouchstart" in document.documentElement);
+}
+
+
+util.offset = function(domEl) {
+    var ox = 0, oy = 0;
+    if (domEl.offsetParent) {
+        do {        
+            ox+= domEl.offsetLeft;
+            oy+= domEl.offsetTop;
+        }
+        while (domEl = domEl.offsetParent);
+    }
+    
+    return {x: ox, y: oy};
+}
