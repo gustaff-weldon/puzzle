@@ -40,7 +40,10 @@ util.isTouch = function() {
 }
 
 
-util.offset = function(domEl) {
+
+namespace("util.dom");
+
+util.dom.offset = function(domEl) {
     var ox = 0, oy = 0;
     if (domEl.offsetParent) {
         do {        
@@ -52,3 +55,20 @@ util.offset = function(domEl) {
     
     return {x: ox, y: oy};
 }
+
+util.dom.hasClass = function(domEl, className) {
+    return (" " + domEl.className + " ").indexOf(" " + className + " ") > -1;
+}
+
+util.dom.addClass = function(domEl, className) {
+    if (!util.dom.hasClass(domEl, className)) {
+        domEl.className = (domEl.className + " " + className).trim();
+    }
+}
+
+util.dom.removeClass = function(domEl, className) {
+    if (util.dom.hasClass(domEl, className)) {
+        domEl.className = (" " + domEl.className + " ").replace(" " + className + " ", " ").trim();
+    }
+}
+

@@ -16,7 +16,7 @@ PZ.view.Board.prototype = {
         document.body.appendChild(boardDiv);
         
         this.boardEl = boardDiv;
-        this.boardOffset = util.offset(this.boardEl);
+        this.boardOffset = util.dom.offset(this.boardEl);
     },
     
     setPhoto: function(model) {
