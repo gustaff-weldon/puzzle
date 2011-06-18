@@ -40,15 +40,16 @@ PZ.view.Board.prototype = {
             var pieceEl = document.createElement("div");
             pieceEl.id = piece.id;
             pieceEl.className = "puzzle-piece";
-            pieceEl.style.width = piece.width + "px";
-            pieceEl.style.height = piece.height + "px";
-            pieceEl.style.left = piece.posX + "px";
-            pieceEl.style.top = piece.posY + "px";
             
-            pieceEl.style.backgroundImage = "url(" + photoPath + ")";
-            pieceEl.style.backgroundPosition =  
-                " -" + piece.posX + "px"
-                + " -" + piece.posY + "px";
+            util.mixin(pieceEl.style, {
+                width: piece.width + "px",
+                height: piece.height + "px",
+                left: piece.posX + "px",
+                top: piece.posY + "px",
+                backgroundImage: "url(" + photoPath + ")",
+                backgroundPosition: " -" + piece.posX + "px"
+                                  + " -" + piece.posY + "px"
+            });
             
             return pieceEl;
     },
@@ -68,10 +69,7 @@ PZ.view.Board.prototype = {
     markPieceHold: function(evt) {
         evt.preventDefault();
         function markHold(node) {
-            node.style.zIndex = "9999";
-            node.style.outline = "2px solid white";
-            node.style.opacity = "0.7";
-            node.style.webkitBoxShadow = "10px 10px 10px black";
+            util.dom.addClass(node, "held");
         }
         
         var node = null;
@@ -98,11 +96,7 @@ PZ.view.Board.prototype = {
         evt.preventDefault();
         
         function markRelease(node){
-            node.style.outline = "1px solid white";
-            node.style.opacity = "1";
-            node.style.zIndex = "1";
-            node.style.webkitBoxShadow = "none";
-            
+            util.dom.removeClass(node, "held");
             return {
                 id : node.id,
                 x : node.style.left,
@@ -157,5 +151,7 @@ PZ.view.Board.prototype = {
 //        }
     }
 };
+
 util.mixin(PZ.view.Board.prototype, PZ.event.observable);
 PZ.view.Board.prototype.constructor = PZ.view.Board;
+

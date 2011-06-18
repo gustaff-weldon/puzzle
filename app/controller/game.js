@@ -50,7 +50,7 @@ PZ.Game.prototype = {
     
     updatePieces : function(data) {
         var ids = data.nodes; 
-        util.log(ids.length + " piece(s) updated: " + ids);
+        util.log(ids.length + " piece(s) updated: ", ids);
     }
 };
 
@@ -65,3 +65,4 @@ PZ.Game.prototype.constructor = PZ.Game;
     });
     game.start();
 }())
+
