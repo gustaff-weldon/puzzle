@@ -97,6 +97,7 @@ PZ.view.Board.prototype = {
         
         function markRelease(node){
             util.dom.removeClass(node, "held");
+            node.parentNode.appendChild(node);
             return {
                 id : node.id,
                 x : node.style.left,
