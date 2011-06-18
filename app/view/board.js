@@ -63,6 +63,7 @@ PZ.view.Board.prototype = {
         } else {
             pieceEl.addEventListener('mousedown', util.bind(this.markPieceHold, this));
             pieceEl.addEventListener('mouseup', util.bind(this.markPieceRelease, this));
+            pieceEl.addEventListener('mousemove', util.bind(this.updatePiecePosition, this));
         }
     },
     
@@ -135,12 +136,16 @@ PZ.view.Board.prototype = {
             var node = touch.target,
                 offset = self.pieceOffset;
             
-            node.style.left = (touch.pageX - offset.x) + "px";
-            node.style.top = (touch.pageY - offset.y) + "px";
+            if (util.dom.hasClass(node, "held")) {
+                node.style.left = (touch.pageX - offset.x) + "px";
+                node.style.top = (touch.pageY - offset.y) + "px";
+            }
         }
         
         if (evt.changedTouches) {
-            markMove(evt.changedTouches[0])
+            markMove(evt.changedTouches[0]);
+        } else {
+            markMove(evt);
         }
         
 //        if (evt.changedTouches) {
