@@ -56,15 +56,13 @@ PZ.view.Board.prototype = {
     
     /** DnD **/
     bindEvents: function(pieceEl) {
-        if (util.isTouch()) {
-            pieceEl.addEventListener('touchstart', util.bind(this.markPieceHold, this));
-            pieceEl.addEventListener('touchend', util.bind(this.markPieceRelease, this));
-            pieceEl.addEventListener('touchmove', util.bind(this.updatePiecePosition, this));
-        } else {
-            pieceEl.addEventListener('mousedown', util.bind(this.markPieceHold, this));
-            pieceEl.addEventListener('mouseup', util.bind(this.markPieceRelease, this));
-            pieceEl.addEventListener('mousemove', util.bind(this.updatePiecePosition, this));
-        }
+        var initEvt = util.isTouch ? 'touchstart' : 'mousedown',
+            moveEvt = util.isTouch ? 'touchmove' : 'mousemove',
+            stopEvt = util.isTouch ? 'touchend' : 'mouseup';
+        
+        pieceEl.addEventListener(initEvt, this.markPieceHold.bind(this));
+        pieceEl.addEventListener(moveEvt, this.updatePiecePosition.bind(this));
+        pieceEl.addEventListener(stopEvt, this.markPieceRelease.bind(this));
     },
     
     markPieceHold: function(evt) {

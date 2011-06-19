@@ -10,7 +10,7 @@ PZ.Game.prototype = {
         this.model = this.buildModel();
         this.view = new PZ.view.Board(this);
         this.view.setPhoto(this.model);
-        this.view.addEventListener('piecemove', util.bind(this.updatePieces, this));
+        this.view.addEventListener('piecemove', this.updatePieces.bind(this));
         this.fireEvent('started', this.model);
     },
     

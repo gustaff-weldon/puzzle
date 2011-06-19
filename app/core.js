@@ -28,18 +28,7 @@ util.mixin = function(target, source) {
     return target;
 };
 
-//polyfill Function.prototype instead?
-util.bind = function(func, context) {
-    return function() {
-        func.apply(context, arguments);
-    }
-}
-
-util.isTouch = function() {
-    return ("ontouchstart" in document.documentElement);
-}
-
-
+util.isTouch = ("ontouchstart" in document.documentElement);
 
 namespace("util.dom");
 
@@ -69,6 +58,19 @@ util.dom.addClass = function(domEl, className) {
 util.dom.removeClass = function(domEl, className) {
     if (util.dom.hasClass(domEl, className)) {
         domEl.className = (" " + domEl.className + " ").replace(" " + className + " ", " ").trim();
+    }
+}
+
+// ECMAScript 5 compatibility
+
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function(context) {
+        var self = this,
+            slice = Array.prototype.slice,
+            args = slice.call(arguments, 1);
+        return function() {
+            self.apply(context, args.concat(slice.call(arguments)));
+        }
     }
 }
 
