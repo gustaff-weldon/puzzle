@@ -56,7 +56,10 @@ PZ.view.Board.prototype = {
             stopEvt = util.isTouch ? 'touchend' : 'mouseup';
         
         pieceEl.addEventListener(initEvt, this.markPieceHold.bind(this));
-        pieceEl.addEventListener(moveEvt, this.updatePiecePosition.bind(this));
+        pieceEl.addEventListener(moveEvt, util.isTouch
+            //touch felt bit laggy - decreasing callback frequency to ~25fps
+            ? util.throttle(this.updatePiecePosition.bind(this), 40) 
+            : this.updatePiecePosition.bind(this));
         pieceEl.addEventListener(stopEvt, this.markPieceRelease.bind(this));
     },
     
@@ -124,14 +127,6 @@ PZ.view.Board.prototype = {
         } else {
             markMove(evt);
         }
-        
-//        if (evt.changedTouches) {
-//            var len = evt.changedTouches.length,
-//                i;
-//            for (i = 0; i < len; i++) {
-//                markMove(evt.changedTouches[i]);
-//            }
-//        }
     }
 };
 

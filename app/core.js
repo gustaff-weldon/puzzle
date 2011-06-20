@@ -34,6 +34,18 @@ util.mixin = function(target, source) {
 
 util.isTouch = ("ontouchstart" in document.documentElement);
 
+util.throttle = function(func, delay) {
+    var lastRun = null;
+    return function() {
+        var now = new Date().getTime();
+        if (lastRun === null || now - lastRun > delay) {
+            lastRun = now;
+            return func.apply(this, arguments);
+        }
+        return;
+    }
+}
+
 namespace("util.dom");
 
 util.dom.offset = function(domEl) {
