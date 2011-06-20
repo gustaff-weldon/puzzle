@@ -15,8 +15,12 @@ namespace("util");
 
 util.log = function() {
     var args = Array.prototype.slice.call(arguments, 0); 
-    args.unshift(new Date().getTime()); 
-    console.log.apply(console, args);
+    args.unshift(new Date().getTime());
+    if (util.isTouch) {
+        console.log.call(console, args.join(" "));
+    } else {
+        console.log.apply(console, args);
+    }
 };
 
 util.mixin = function(target, source) {
@@ -62,7 +66,6 @@ util.dom.removeClass = function(domEl, className) {
 }
 
 // ECMAScript 5 compatibility
-
 if (!Function.prototype.bind) {
     Function.prototype.bind = function(context) {
         var self = this,

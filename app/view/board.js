@@ -4,7 +4,6 @@ PZ.view.Board = function(controller) {
     this.controller = controller; //remove coupling, just register listener on events?
     this.boardEl = null;
     this.boardOffset = null;
-    this.pieceOffset = null; //object {x,y}. Board offset minus half piece width/height
 
     this.init();
 };
@@ -23,10 +22,6 @@ PZ.view.Board.prototype = {
         var docFragment = document.createDocumentFragment(),
             i, pieceEl,
             len = model.pieces.length;
-        this.pieceOffset = {
-            x :this.boardOffset.x + model.pieceWidth/2,
-            y :this.boardOffset.y + model.pieceHeight/2,
-        }; 
         
         for (i = 0; i < len; i++) {
             pieceEl = this.buildPiece(model.photoPath, model.pieces[i]);
@@ -71,30 +66,26 @@ PZ.view.Board.prototype = {
             util.dom.addClass(node, "held");
         }
         
-        var node = null;
+        var node = null, originalEvt = evt, ox = oy = 0;
         if (evt.changedTouches) {
-            node = evt.changedTouches[0].target; 
+            node = evt.changedTouches[0].target;
+            originalEvt = evt.changedTouches[0];
         } else {
             node = evt.target;
         }
+        
+        //calculate offset within a piece when piece is grabbed
+        ox = (originalEvt.pageX - this.boardOffset.x) - parseInt(node.style.left) ;
+        oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top);
+        node.dragOffset = {x: ox, y: oy};
         markHold(node);
-        
-//        var i, len; 
-//            len = evt.changedTouches.length;
-//            for (i = 0; i < len; i++) {
-//                markHold(evt.changedTouches[i].target);
-//            }
-//        }
-//        else {
-//            markHold(evt.target);
-//        }
-        
     },
     
     markPieceRelease: function(evt){
         evt.preventDefault();
         
         function markRelease(node){
+            delete node.dragOffset;
             util.dom.removeClass(node, "held");
             node.parentNode.appendChild(node);
             return {
@@ -112,18 +103,6 @@ PZ.view.Board.prototype = {
         }
         updatedNodes.push(markRelease(node));
 
-//        
-//        var i, len, node, updatedNodes = [];
-//        if (evt.changedTouches) {
-//            len = evt.changedTouches.length;
-//            for (i = 0; i < len; i++) {
-//                node = evt.changedTouches[i].target;
-//                updatedNodes.push(markRelease(node));
-//            }
-//        }
-//        else {
-//            updatedNodes.push(markRelease(evt.target));
-//        }
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },
     
@@ -132,11 +111,11 @@ PZ.view.Board.prototype = {
         var self = this;
         function markMove(touch) {
             var node = touch.target,
-                offset = self.pieceOffset;
+                offset = self.boardOffset;
             
             if (util.dom.hasClass(node, "held")) {
-                node.style.left = (touch.pageX - offset.x) + "px";
-                node.style.top = (touch.pageY - offset.y) + "px";
+                node.style.left = (touch.pageX - offset.x - node.dragOffset.x) + "px";
+                node.style.top = (touch.pageY - offset.y - node.dragOffset.y) + "px";
             }
         }
         
