@@ -46,6 +46,10 @@ util.throttle = function(func, delay) {
     }
 }
 
+util.randomInt= function(min, max) {
+    return Math.floor(Math.random() * max + min);
+}
+
 namespace("util.dom");
 
 util.dom.offset = function(domEl) {
