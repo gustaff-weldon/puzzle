@@ -1,55 +1,96 @@
-namespace("PZ.view");
+namespace('PZ.view');
 
 PZ.view.Board = function(controller) {
     this.controller = controller; //remove coupling, just register listener on events?
     this.boardEl = null;
     this.boardOffset = null;
     this.mouseDragInProgress = false;
-
+    this.elPieces = {};
+    
+    controller.addEventListeners({
+        'newGame':      this.onNewGame.bind(this),
+        'shuffled':     this.onShuffled.bind(this),
+        'modelUpdated': function(model) { console.log('model update', model)}       
+    })
     this.init();
 };
 
 PZ.view.Board.prototype = {
     init: function()    {
         var boardDiv = document.createElement('div');
-        boardDiv.className = "puzzle-board";
+        boardDiv.className = 'puzzle-board';
         document.body.appendChild(boardDiv);
         
         this.boardEl = boardDiv;
         this.boardOffset = util.dom.offset(this.boardEl);
     },
     
-    setPhoto: function(model) {
-        var docFragment = document.createDocumentFragment(),
-            i, pieceEl,
-            len = model.pieces.length;
-        
-        for (i = 0; i < len; i++) {
-            pieceEl = this.buildPiece(model.photoPath, model.pieces[i]);
-            this.bindEvents(pieceEl);
-            docFragment.appendChild(pieceEl);
-        }
-        this.boardEl.appendChild(docFragment);
-    },
-    
     buildPiece: function(photoPath, piece) {
-            var pieceEl = document.createElement("div");
+            var pieceEl = document.createElement('div');
             pieceEl.id = piece.id;
-            pieceEl.className = "puzzle-piece";
+            pieceEl.className = 'puzzle-piece';
             
             util.mixin(pieceEl.style, {
-                width: piece.width + "px",
-                height: piece.height + "px",
-                left: piece.posX + "px",
-                top: piece.posY + "px",
-                backgroundImage: "url(" + photoPath + ")",
-                backgroundPosition: " -" + piece.posX + "px"
-                                  + " -" + piece.posY + "px"
+                width: piece.width + 'px',
+                height: piece.height + 'px',
+                left: piece.posX + 'px',
+                top: piece.posY + 'px',
+                backgroundImage: 'url(' + photoPath + ')',
+                backgroundPosition: ' -' + piece.posX + 'px'
+                                  + ' -' + piece.posY + 'px'
             });
             
             return pieceEl;
     },
     
+    bindShuffleEvents: function() {
+        var shuffleEvt = util.isTouch ? 'touchstart' : 'mousedown';
+        var listener = null;
+        this.boardEl.addEventListener(shuffleEvt, listener = function(evt) {
+            //unregister shuffle listener
+            this.boardEl.removeEventListener(shuffleEvt, listener);
+            this.fireEvent('shuffle', {});
+        }.bind(this)); 
+    },
+    
+    /** listener methods **/
+    onNewGame : function(data) {
+        var docFragment = document.createDocumentFragment(),
+            i, pieceEl,
+            model = data.model,
+            len = model.pieces.length;
+        
+        for (i = 0; i < len; i++) {
+            pieceEl = this.buildPiece(model.photoPath, model.pieces[i]);
+            this.elPieces[pieceEl.id] = pieceEl;  
+            docFragment.appendChild(pieceEl);
+        }
+        this.boardEl.appendChild(docFragment);
+        
+        this.bindShuffleEvents();
+    },
+    
+    onShuffled: function(data) {
+        //pieces shuffled, now bind events to pieces
+        for (var id in this.elPieces) {
+            this.bindEvents(this.elPieces[id]);
+        }
+        this.onModelUpdate(data);
+    },
+    
+    onModelUpdate : function(data) {
+        var pieces = data.model.pieces,
+            len = pieces.length, i, id,
+            offset = this.boardOffset;
+        for (i = 0; i < len; i++) {
+            id = pieces[i].id;
+            util.mixin(this.elPieces[id].style, {
+                left: (pieces[i].posX  - offset.x) + 'px',
+                top: (pieces[i].posY  - offset.y) + 'px'
+            });
+        }
+    },    
+   
     /** DnD **/
     bindEvents: function(pieceEl) {
         var initEvt = util.isTouch ? 'touchstart' : 'mousedown',
@@ -72,7 +113,7 @@ PZ.view.Board.prototype = {
     markPieceHold: function(evt) {
         evt.preventDefault();
         function markHold(node) {
-            util.dom.addClass(node, "held");
+            util.dom.addClass(node, 'held');
         }
         
         var node = null, originalEvt = evt, ox = oy = 0;
@@ -96,7 +137,7 @@ PZ.view.Board.prototype = {
         
         function markRelease(node){
             delete node.dragOffset;
-            util.dom.removeClass(node, "held");
+            util.dom.removeClass(node, 'held');
             node.parentNode.appendChild(node);
             return {
                 id : node.id,
@@ -130,12 +171,12 @@ PZ.view.Board.prototype = {
             var node = touch.target,
                 offset = self.boardOffset;
             
-            var isHeld = util.dom.hasClass(node, "held");
-            //on desktop, leaving node area while movin mouse really fast
-            //might leave the node in "held" state, we find it and update it
-            if (isHeld || (!isHeld && self.mouseDragInProgress && (node = document.querySelector(".puzzle-piece.held")))) {
-                node.style.left = (touch.pageX - offset.x - node.dragOffset.x) + "px";
-                node.style.top = (touch.pageY - offset.y - node.dragOffset.y) + "px";
+            var isHeld = util.dom.hasClass(node, 'held');
+            //on desktop, leaving node area while moving mouse really fast
+            //might leave the node in 'held' state, we find it and update it
+            if (isHeld || (!isHeld && self.mouseDragInProgress && (node = document.querySelector('.puzzle-piece.held')))) {
+                node.style.left = (touch.pageX - offset.x - node.dragOffset.x) + 'px';
+                node.style.top = (touch.pageY - offset.y - node.dragOffset.y) + 'px';
             }
         }
         

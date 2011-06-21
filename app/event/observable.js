@@ -11,6 +11,12 @@ PZ.event.observable = {
         this.listeners[eventName].push(listener);
     },
     
+    addEventListeners: function(listenersObj) {
+        for(var eventName in listenersObj) {
+            this.addEventListener(eventName, listenersObj[eventName]);
+        }
+    },
+    
     removeEventListener: function(eventName, listener) {
         var eventListeners = this.listeners[eventName], removed = false;
         

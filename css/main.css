@@ -28,6 +28,9 @@ ol, ul {
 /******************************************
  * RESET END
  */
+html, body {
+    height: 100%;
+}
  
 body {
     font-size: 62.5%;

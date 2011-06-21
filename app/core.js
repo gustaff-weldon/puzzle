@@ -47,7 +47,7 @@ util.throttle = function(func, delay) {
 }
 
 util.randomInt= function(min, max) {
-    return Math.floor(Math.random() * max + min);
+    return min + Math.floor(Math.random() * max);
 }
 
 namespace("util.dom");

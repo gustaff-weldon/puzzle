@@ -9,9 +9,15 @@ PZ.Game.prototype = {
     start: function() {
         this.model = this.buildModel();
         this.view = new PZ.view.Board(this);
-        this.view.setPhoto(this.model);
-        this.view.addEventListener('piecemove', this.updatePieces.bind(this));
-        this.fireEvent('started', this.model);
+        this.view.addEventListeners({
+            'piecemove': this.onUpdatePieces.bind(this),
+            'shuffle':   this.onShuffle.bind(this)
+        });
+        
+        this.fireEvent('gameStarted', this.model);
+        this.fireEvent('newGame', {
+            model: this.model
+        });
     },
     
     buildModel: function(){
@@ -32,9 +38,9 @@ PZ.Game.prototype = {
         for (var y = 0; y < countY; y++) {
             for (var x = 0; x < countX; x++) {
                 piece = {
-                    id: "p_" + x + "_" + y,
-                    x: x,
-                    y: y,
+                    id: 'p_' + x + '_' + y,
+                    px: x,
+                    py: y,
                     width: pieceWidth,
                     height: pieceHeight,
                     posX: x * pieceWidth,
@@ -47,10 +53,29 @@ PZ.Game.prototype = {
         return pieces;
     },
     
+    shufflePieces: function(minX, maxX, minY, maxY) {
+        var pieces = this.model.pieces,
+            len = pieces.length, i;
+        for(i = 0; i < len; i++) {
+            pieces[i].posX = util.randomInt(minX, maxX);
+            pieces[i].posY = util.randomInt(minY, maxY);
+        }
+    },
     
-    updatePieces : function(data) {
+    /** Event handlers **/
+    onShuffle : function(data) {
+        util.log('got shuffle');
+        var maxX = document.body.offsetWidth - this.model.pieceWidth,
+            maxY = document.body.offsetHeight - this.model.pieceHeight;
+        this.shufflePieces(20, maxX - 20, 20, maxY - 20);
+        this.fireEvent('shuffled', {
+            model: this.model
+        });
+    },
+    
+    onUpdatePieces : function(data) {
         var ids = data.nodes; 
-        util.log(ids.length + " piece(s) updated: ", ids);
+        util.log(ids.length + ' piece(s) updated: ', ids);
     }
 };
 
@@ -60,8 +85,8 @@ PZ.Game.prototype.constructor = PZ.Game;
 
 (function() {
     var game = new PZ.Game();
-    game.addEventListener('started', function(data) {
-        util.log("Game started", data);
+    game.addEventListener('gameStarted', function(data) {
+        util.log('Game started', data);
     });
     game.start();
 }())

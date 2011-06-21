@@ -53,11 +53,14 @@
     
     //test framework ;) utility method
     tests.run = function() {
+        var testcases = 0;
         for (key in this) {
             if (key.indexOf("test") === 0 && this.hasOwnProperty(key) && typeof this[key] == "function") {
-                this[key]();
+                this[key]() 
+                testcases++;
             }
         }
+        console.log("Finished " + testcases + " testcase(s)");
     }
 
     tests.run();
