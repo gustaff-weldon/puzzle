@@ -41,7 +41,7 @@ body {
 .puzzle-board {
     width: 960px;
     min-height: 640px;
-    margin: 20px auto 160px;
+    margin: 0 auto 160px;
     position: relative;
 }
 
