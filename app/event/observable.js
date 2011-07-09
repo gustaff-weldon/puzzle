@@ -21,7 +21,7 @@ PZ.event.observable = {
         var eventListeners = this.listeners[eventName], removed = false;
         
         if (!listener || typeof eventListeners == "undefined" 
-            || eventListeners.length == 0) {
+            || eventListeners.length === 0) {
             return false;
         }
         
