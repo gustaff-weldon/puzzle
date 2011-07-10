@@ -51,17 +51,17 @@ body {
 
 .puzzle-piece {
     position: absolute;
-    outline: 1px solid white;
-    -webkit-transition: outline 0.4s linear;
     background: transparent none no-repeat;
+    -webkit-transition: outline 0.4s linear;
+    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0px #222;
+    box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #222;
 }
 
 .puzzle-piece.held {
     z-index: 9999;
-    outline: 2px solid white;
     opacity: 0.7;
-    -webkit-box-shadow: 10px 10px 10px black;
-    box-shadow: 10px 10px 10px black;
+    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 10px 10px 10px black;
+    box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 10px 10px 10px black;
 }
 
 .puzzle-piece.matched {
