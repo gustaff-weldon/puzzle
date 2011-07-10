@@ -32,8 +32,8 @@ PZ.Game.prototype = {
             pieceMap[el.id] = el;
         });
         return {
-            matchDeltaX: 10,
-            matchDeltaY: 10,
+            matchDeltaX: 15,
+            matchDeltaY: 15,
             pieceWidth: pieces[0].width,
             pieceHeight: pieces[0].height, 
             pieces: pieces,
