@@ -18,7 +18,7 @@ PZ.view.Board = function(controller) {
 PZ.view.Board.prototype = {
     init: function()    {
         var boardDiv = document.createElement('div');
-        boardDiv.className = 'puzzle-board';
+        boardDiv.className = 'puzzle-board full';
         document.body.appendChild(boardDiv);
         
         this.boardEl = boardDiv;
@@ -47,6 +47,7 @@ PZ.view.Board.prototype = {
         var shuffleEvt = util.isTouch ? 'touchstart' : 'mousedown';
         var listener = null;
         this.boardEl.addEventListener(shuffleEvt, listener = function(evt) {
+            util.dom.removeClass(this.boardEl, "full");
             //unregister shuffle listener
             this.boardEl.removeEventListener(shuffleEvt, listener);
             this.fireEvent('shuffle', {});
