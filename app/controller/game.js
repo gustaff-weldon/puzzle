@@ -32,6 +32,7 @@ PZ.Game.prototype = {
             pieceMap[el.id] = el;
         });
         return {
+            matchGroups: {},
             matchDeltaX: 15,
             matchDeltaY: 15,
             pieceWidth: pieces[0].width,
@@ -61,7 +62,6 @@ PZ.Game.prototype = {
                     height: pieceHeight,
                     posX: x * pieceWidth,
                     posY: y * pieceHeight,
-                    matched : false,
                     //edge elements do not have at least one neighbour,
                     // but that will be taken into account
                     nearest:[
@@ -101,35 +101,34 @@ PZ.Game.prototype = {
 
     performMatching: function(changedPieces) {
         var matchedPieces = [], piece, i,
-            self = this,
             dx = this.model.matchDeltaX,
             dy = this.model.matchDeltaY;
 
         changedPieces.forEach(function(change) {
             //retrieve pieces from model and set their new position
-            piece = self.model.pieceMap[change.id];
+            piece = this.model.pieceMap[change.id];
             piece.posX = change.x;
             piece.posY = change.y;
-            piece.matched = false;
 
             //check if piece is near enough one of its neighbours to be matched
             for (i = 0; i < 4; i++)  {
                 var matchResult,
-                    neighbour = self.model.pieceMap[piece.nearest[i].id];
+                    neighbour = this.model.pieceMap[piece.nearest[i].id];
 
                 if (neighbour) {
                     matchResult = pieceMatch(piece, neighbour, piece.nearest[i].rel, dx, dy);
                     if (matchResult.matched) {
                         //piece matched, set new position that aligns it to matched neighbour
-                        piece.matched = true;
                         piece.posX+=matchResult.diffx;
                         piece.posY+=matchResult.diffy;
                         matchedPieces.push(piece.id);
+                        //update match groups
+                        this.updateMatchGroups(piece, neighbour);
                         break;
                     }
                 }
             }
-        });
+        }.bind(this));
 
         //inform about found matches
         if (matchedPieces.length) {
@@ -163,6 +162,31 @@ PZ.Game.prototype = {
             console.log('Matching:', result.matched, 'for', matchee.id, reference.id, relation, 'Result', result);
             return result;
         }
+    },
+
+    updateMatchGroups: function(matchee, reference) {
+        var refGid = reference.groupId,
+            matchGid = matchee.groupId;
+
+        if (refGid) { //append to reference group
+            if (matchGid) {
+                this.model.matchGroups[matchGid].forEach(function(id){
+                    this.model.pieceMap[id].groupId = refGid;
+                }.bind(this));
+                this.model.matchGroups[refGid] = this.model.matchGroups[refGid].concat(this.model.matchGroups[matchGid]);
+                delete this.model.matchGroups[matchGid];
+            } else {
+                this.model.matchGroups[refGid].push(matchee.id);
+            }
+            matchee.groupId = refGid;
+        } else if (matchGid) { //append to matchee group
+            this.model.matchGroups[matchGid].push(reference.id);
+            reference.groupId = matchGid;
+        } else { //create new match group
+            this.model.matchGroups['g_' + matchee.id] = [matchee.id, reference.id];
+            matchee.groupId = reference.groupId = 'g_' + matchee.id;
+        }
+        console.dir(this.model.matchGroups);
     },
 
     /** Event handlers **/

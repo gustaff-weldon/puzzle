@@ -194,7 +194,7 @@ onModelUpdate : function(data) {
             }
         }
         
-        if (evt.changedTouches) {
+        if (evt.changedTouches) { //touch
             markMove(evt.changedTouches[0]);
         } else {
             markMove(evt);
