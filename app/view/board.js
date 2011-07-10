@@ -10,8 +10,8 @@ PZ.view.Board = function(controller) {
     controller.addEventListeners({
         'newGame':      this.onNewGame.bind(this),
         'shuffled':     this.onShuffled.bind(this),
-        'modelUpdated': function(model) { console.log('model update', model)}       
-    })
+        'modelUpdated': this.onModelUpdate.bind(this)
+    });
     this.init();
 };
 
@@ -77,13 +77,27 @@ PZ.view.Board.prototype = {
         }
         this.onModelUpdate(data);
     },
-    
-    onModelUpdate : function(data) {
-        var pieces = data.model.pieces,
+
+onModelUpdate : function(data) {
+    console.log('model update', data.model);
+
+    function markElementMatched(pieceEl) {
+        util.dom.addClass(pieceEl, "matched");
+        setTimeout(function() {
+            util.dom.removeClass(pieceEl, "matched");
+        }, 600);
+    }
+
+    var pieces = data.model.pieces,
             len = pieces.length, i, id,
             offset = this.boardOffset;
         for (i = 0; i < len; i++) {
             id = pieces[i].id;
+
+            if (data.matched && data.matched.indexOf(id) !== -1) {
+                markElementMatched(this.elPieces[id]);
+            }
+            else {}
             util.mixin(this.elPieces[id].style, {
                 left: (pieces[i].posX  - offset.x) + 'px',
                 top: (pieces[i].posY  - offset.y) + 'px'
@@ -141,19 +155,19 @@ PZ.view.Board.prototype = {
             node.parentNode.appendChild(node);
             return {
                 id : node.id,
-                x : node.style.left,
-                y : node.style.top
+                x : parseInt(node.style.left, 10) + this.boardOffset.x,
+                y : parseInt(node.style.top, 10) + this.boardOffset.y
             };
         }
 
-        var node = null, updatedNodes = []
+        var node = null, updatedNodes = [];
         if (evt.changedTouches) {
             node = evt.changedTouches[0].target; 
         } else {
             this.mouseDragInProgress = false;
             node = evt.target;
         }
-        updatedNodes.push(markRelease(node));
+        updatedNodes.push(markRelease.bind(this)(node));
 
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },

@@ -52,6 +52,7 @@ body {
 .puzzle-piece {
     position: absolute;
     outline: 1px solid white;
+    -webkit-transition: outline 0.4s linear;
     background: transparent none no-repeat;
 }
 
@@ -61,4 +62,9 @@ body {
     opacity: 0.7;
     -webkit-box-shadow: 10px 10px 10px black;
     box-shadow: 10px 10px 10px black;
+}
+
+.puzzle-piece.matched {
+    -webkit-transition: outline 0.4s linear;
+    outline: 1px solid #F2B705;
 }

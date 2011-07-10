@@ -3,7 +3,12 @@ namespace('PZ');
 PZ.Game  = function() {
     this.view = null;
     this.model = null;
-}
+};
+
+PZ.Game.TOP = 1;
+PZ.Game.RIGHT = 2;
+PZ.Game.BOTTOM = 3;
+PZ.Game.LEFT = 4;
 
 PZ.Game.prototype = {
     start: function() {
@@ -27,6 +32,8 @@ PZ.Game.prototype = {
             pieceMap[el.id] = el;
         });
         return {
+            matchDeltaX: 10,
+            matchDeltaY: 10,
             pieceWidth: pieces[0].width,
             pieceHeight: pieces[0].height, 
             pieces: pieces,
@@ -40,9 +47,9 @@ PZ.Game.prototype = {
             pieceHeight = photoHeight / countY,
             pieces = [], piece = null, offsetX, offsetY;
 
-        var generateId = function(x,y) {
+        function generateId(x,y) {
             return 'p_' + x + '_' + y;
-        };
+        }
         
         for (var y = 0; y < countY; y++) {
             for (var x = 0; x < countX; x++) {
@@ -54,10 +61,27 @@ PZ.Game.prototype = {
                     height: pieceHeight,
                     posX: x * pieceWidth,
                     posY: y * pieceHeight,
-                    nearest:[generateId(x-1,y),  //yes, I know edge elements do not have at least
-                            generateId(x+1,y),   //one neighbour, but that's  should not be an issue ;)
-                            generateId(x,y-1),
-                            generateId(x,y+1)]
+                    matched : false,
+                    //edge elements do not have at least one neighbour,
+                    // but that will be taken into account
+                    nearest:[
+                        {
+                           rel: PZ.Game.TOP,
+                           id: generateId(x,y-1)
+                        },
+                        {
+                            rel: PZ.Game.RIGHT,
+                            id: generateId(x+1,y)
+                        },
+                        {
+                            rel: PZ.Game.BOTTOM,
+                            id: generateId(x,y+1)
+                        },
+                        {
+                            rel: PZ.Game.LEFT,
+                            id: generateId(x-1,y)
+                        }
+                    ]
                 };
                 pieces.push(piece);
             }
@@ -76,24 +100,69 @@ PZ.Game.prototype = {
     },
 
     performMatching: function(changedPieces) {
-        var matchedPieces = [];
-        changedPieces.forEach(function(id, i) {
-            var piece = this.model.pieceMap(id);
-            for (var i = 0; i < 4; i++)  {
-                var neighbour = this.model.pieceMap(piece.nearest[i]),
-                    matched = neighbour && pieceMatch(piece, neighbour);
-                if (matched) {
-                    matchedPieces.push(neighbour.id)
+        var matchedPieces = [], piece, i,
+            self = this,
+            dx = this.model.matchDeltaX,
+            dy = this.model.matchDeltaY;
+
+        changedPieces.forEach(function(change) {
+            //retrieve pieces from model and set their new position
+            piece = self.model.pieceMap[change.id];
+            piece.posX = change.x;
+            piece.posY = change.y;
+            piece.matched = false;
+
+            //check if piece is near enough one of its neighbours to be matched
+            for (i = 0; i < 4; i++)  {
+                var matchResult,
+                    neighbour = self.model.pieceMap[piece.nearest[i].id];
+
+                if (neighbour) {
+                    matchResult = pieceMatch(piece, neighbour, piece.nearest[i].rel, dx, dy);
+                    if (matchResult.matched) {
+                        //piece matched, set new position that aligns it to matched neighbour
+                        piece.matched = true;
+                        piece.posX+=matchResult.diffx;
+                        piece.posY+=matchResult.diffy;
+                        matchedPieces.push(piece.id);
+                        break;
+                    }
                 }
             }
         });
 
-        function pieceMatch(piece, neighbour) {
-            var w = piece.width, h = piece.height, delta = 5; //5px delta, extract to settings?
-            //distance between centers of pieces should be equal to width,height with delta allowance
-            return false;
+        //inform about found matches
+        if (matchedPieces.length) {
+            this.fireEvent('modelUpdated', {
+                model: this.model,
+                matched: matchedPieces
+            });
         }
 
+        function pieceMatch(matchee, reference, relation, dx, dy) {
+            var pw = piece.width, ph = piece.height,
+                result = {matched: false};
+            //distance between centers of pieces should be equal to width,height with delta allowance
+            var mx = matchee.posX, my = matchee.posY,
+                rx = reference.posX, ry = reference.posY,
+                diffx = 0, diffy = 0;
+
+            switch (relation) { //adjust matchee position (put near ref point to check delta)
+                case PZ.Game.TOP: my-=ph; break;
+                case PZ.Game.RIGHT: mx+=pw; break;
+                case PZ.Game.BOTTOM:my+=ph; break;
+                case PZ.Game.LEFT:mx-=pw; break;
+            }
+
+            diffx = rx - mx;
+            diffy = ry - my;
+
+            result.matched = Math.abs(diffx) <= dx && Math.abs(diffy) <= dy;
+            result.diffx = diffx;
+            result.diffy = diffy;
+            console.log('Matching:', result.matched, 'for', matchee.id, reference.id, relation, 'Result', result);
+            return result;
+        }
     },
 
     /** Event handlers **/
@@ -110,6 +179,7 @@ PZ.Game.prototype = {
     onUpdatePieces : function(data) {
         var ids = data.nodes; 
         util.log(ids.length + ' piece(s) updated: ', ids);
+        this.performMatching(ids);
     }
 };
 
