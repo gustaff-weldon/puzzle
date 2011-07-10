@@ -106,6 +106,7 @@ PZ.Game.prototype = {
 
         changedPieces.forEach(function(change) {
             //retrieve pieces from model and set their new position
+            util.log('change' + change);
             piece = this.model.pieceMap[change.id];
             piece.posX = change.x;
             piece.posY = change.y;

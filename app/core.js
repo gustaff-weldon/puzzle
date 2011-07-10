@@ -88,7 +88,7 @@ if (!Function.prototype.bind) {
             slice = Array.prototype.slice,
             args = slice.call(arguments, 1);
         return function() {
-            self.apply(context, args.concat(slice.call(arguments)));
+            return self.apply(context, args.concat(slice.call(arguments)));
         }
     }
 }

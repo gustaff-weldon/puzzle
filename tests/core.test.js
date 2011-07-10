@@ -32,6 +32,28 @@
             div.className = "test another-class"
             console.assert(util.dom.hasClass(div, "test") == true, "`util.dom.hasClass` should be true when className contains requested class");
         },
+
+        testBind : function() {
+            function test(param) {
+                this.pass = true;
+                this.param = param;
+                return 'hello ' + param;
+            }
+
+            var obj = {}, res = null;
+            var test1 = test.bind(obj);
+            res = test1();
+            console.assert(obj.pass === true, "bound function should be called in context of obj1");
+            console.assert(typeof obj.param === "undefined", "bound function should be called without a parameter");
+            console.assert(res === "hello undefined", "bound function should have a return value with undefined");
+
+            var obj2 = {}, res2 = null;
+            var test2 = test.bind(obj2);
+            res2 = test2("world");
+            console.assert(obj2.pass === true, "bound function should be called in context of obj2");
+            console.assert(obj2.param === "world", "bound function should be called with a parameter");
+            console.assert(res2 === "hello world", "bound function should have a return value with hello");
+        },
         
         testRandom : function() {
             var i =0, res = null;
