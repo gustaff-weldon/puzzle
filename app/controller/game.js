@@ -33,8 +33,8 @@ PZ.Game.prototype = {
         });
         return {
             matchGroups: {},
-            matchDeltaX: 15,
-            matchDeltaY: 15,
+            matchDeltaX: util.isTouch ? 30 : 15,
+            matchDeltaY: util.isTouch ? 30 : 15,
             pieceWidth: pieces[0].width,
             pieceHeight: pieces[0].height, 
             pieces: pieces,
@@ -106,7 +106,6 @@ PZ.Game.prototype = {
 
         changedPieces.forEach(function(change) {
             //retrieve pieces from model and set their new position
-            util.log('change' + change);
             piece = this.model.pieceMap[change.id];
             piece.posX = change.x;
             piece.posY = change.y;
@@ -160,7 +159,9 @@ PZ.Game.prototype = {
             result.matched = Math.abs(diffx) <= dx && Math.abs(diffy) <= dy;
             result.diffx = diffx;
             result.diffy = diffy;
-            util.log('Matching:', result.matched, 'for', matchee.id, reference.id, relation, 'Result', result);
+            if (result.matched){
+                util.log('Matched:', matchee.id, 'to', reference.id, relation, 'Result', result);
+            }
             return result;
         }
     },
@@ -168,9 +169,9 @@ PZ.Game.prototype = {
     updateMatchGroups: function(matchee, reference) {
         var refGid = reference.groupId,
             matchGid = matchee.groupId;
-
+        //util.log('match groups: ', 'refgid ', refGid, ' matchGid ', matchGid, matchee, reference);
         if (refGid) { //append to reference group
-            if (matchGid) {
+            if (matchGid && matchGid !== refGid) { //second condition should always be true after groups are implemented in view
                 this.model.matchGroups[matchGid].forEach(function(id){
                     this.model.pieceMap[id].groupId = refGid;
                 }.bind(this));
@@ -202,7 +203,7 @@ PZ.Game.prototype = {
     
     onUpdatePieces : function(data) {
         var ids = data.nodes; 
-        util.log(ids.length + ' piece(s) updated: ', ids);
+        //util.log(ids.length + ' piece(s) updated: ', ids);
         this.performMatching(ids);
     }
 };
