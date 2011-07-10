@@ -159,7 +159,7 @@ PZ.Game.prototype = {
             result.matched = Math.abs(diffx) <= dx && Math.abs(diffy) <= dy;
             result.diffx = diffx;
             result.diffy = diffy;
-            console.log('Matching:', result.matched, 'for', matchee.id, reference.id, relation, 'Result', result);
+            util.log('Matching:', result.matched, 'for', matchee.id, reference.id, relation, 'Result', result);
             return result;
         }
     },
@@ -186,7 +186,6 @@ PZ.Game.prototype = {
             this.model.matchGroups['g_' + matchee.id] = [matchee.id, reference.id];
             matchee.groupId = reference.groupId = 'g_' + matchee.id;
         }
-        console.dir(this.model.matchGroups);
     },
 
     /** Event handlers **/

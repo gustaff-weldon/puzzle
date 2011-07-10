@@ -79,8 +79,6 @@ PZ.view.Board.prototype = {
     },
 
 onModelUpdate : function(data) {
-    console.log('model update', data.model);
-
     function markElementMatched(pieceEl) {
         util.dom.addClass(pieceEl, "matched");
         setTimeout(function() {
