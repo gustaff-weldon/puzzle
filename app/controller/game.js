@@ -51,7 +51,7 @@ PZ.Game.prototype = {
         function generateId(x,y) {
             return 'p_' + x + '_' + y;
         }
-        
+
         for (var y = 0; y < countY; y++) {
             for (var x = 0; x < countX; x++) {
                 piece = {
@@ -66,8 +66,8 @@ PZ.Game.prototype = {
                     // but that will be taken into account
                     nearest:[
                         {
-                           rel: PZ.Game.TOP,
-                           id: generateId(x,y-1)
+                            rel: PZ.Game.TOP,
+                            id: generateId(x,y-1)
                         },
                         {
                             rel: PZ.Game.RIGHT,
@@ -218,5 +218,4 @@ PZ.Game.prototype.constructor = PZ.Game;
         util.log('Game started', data);
     });
     game.start();
-}())
-
+}());

@@ -79,22 +79,23 @@ PZ.view.Board.prototype = {
         this.onModelUpdate(data);
     },
 
-onModelUpdate : function(data) {
-    function markElementMatched(pieceEl) {
-        util.dom.addClass(pieceEl, "matched");
-        setTimeout(function() {
-            util.dom.removeClass(pieceEl, "matched");
-        }, 600);
-    }
+    onModelUpdate : function(data) {
+        function markElementMatched(pieceEl) {
+            util.dom.addClass(pieceEl, "matched");
+            setTimeout(function() {
+                util.dom.removeClass(pieceEl, "matched");
+            }, 600);
+        }
 
-    var pieces = data.model.pieces,
-            len = pieces.length, i, id,
-            offset = this.boardOffset;
+        var pieces = data.model.pieces,
+                len = pieces.length, i, id,
+                offset = this.boardOffset;
         for (i = 0; i < len; i++) {
             id = pieces[i].id;
 
             if (data.matched && data.matched.indexOf(id) !== -1) {
                 markElementMatched(this.elPieces[id]);
+                this.elPieces[id].parentNode.appendChild(this.elPieces[id]);
             }
             else {}
             util.mixin(this.elPieces[id].style, {
@@ -102,7 +103,7 @@ onModelUpdate : function(data) {
                 top: (pieces[i].posY  - offset.y) + 'px'
             });
         }
-    },    
+    },
    
     /** DnD **/
     bindEvents: function(pieceEl) {
@@ -125,10 +126,7 @@ onModelUpdate : function(data) {
     
     markPieceHold: function(evt) {
         evt.preventDefault();
-        function markHold(node) {
-            util.dom.addClass(node, 'held');
-        }
-        
+
         var node = null, originalEvt = evt, ox = oy = 0;
         if (evt.changedTouches) {
             node = evt.changedTouches[0].target;
@@ -142,7 +140,7 @@ onModelUpdate : function(data) {
         ox = (originalEvt.pageX - this.boardOffset.x) - parseInt(node.style.left) ;
         oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top);
         node.dragOffset = {x: ox, y: oy};
-        markHold(node);
+        util.dom.addClass(node, 'held');
     },
     
     markPieceRelease: function(evt){
