@@ -4,7 +4,6 @@ PZ.view.Board = function(controller) {
     this.controller = controller; //remove coupling, just register listener on events?
     this.boardEl = null;
     this.boardOffset = null;
-    this.mouseDragInProgress = false;
     this.elPieces = {};
     
     controller.addEventListeners({
@@ -44,14 +43,15 @@ PZ.view.Board.prototype = {
     },
     
     bindShuffleEvents: function() {
-        var shuffleEvt = util.isTouch ? 'touchstart' : 'mousedown';
-        var listener = null;
-        this.boardEl.addEventListener(shuffleEvt, listener = function(evt) {
+        var shuffleEvt = util.isTouch ? 'touchstart' : 'mouseup';
+        var listener = function(evt) {
             util.dom.removeClass(this.boardEl, "full");
             //unregister shuffle listener
             this.boardEl.removeEventListener(shuffleEvt, listener);
             this.fireEvent('shuffle', {});
-        }.bind(this)); 
+        }.bind(this);
+        
+        this.boardEl.addEventListener(shuffleEvt, listener); 
     },
     
     /** listener methods **/
@@ -72,10 +72,7 @@ PZ.view.Board.prototype = {
     },
     
     onShuffled: function(data) {
-        //pieces shuffled, now bind events to pieces
-        for (var id in this.elPieces) {
-            this.bindEvents(this.elPieces[id]);
-        }
+        this.bindEvents();
         this.onModelUpdate(data);
     },
 
@@ -106,34 +103,28 @@ PZ.view.Board.prototype = {
     },
    
     /** DnD **/
-    bindEvents: function(pieceEl) {
-        var initEvt = util.isTouch ? 'touchstart' : 'mousedown',
-            moveEvt = util.isTouch ? 'touchmove' : 'mousemove',
-            stopEvt = util.isTouch ? 'touchend' : 'mouseup';
+    bindEvents: function() {
+        var events = util.isTouch ? ['touchstart', 'touchmove', 'touchend'] : ['mousedown', 'mousemove', 'mouseup'];
         
-        pieceEl.addEventListener(initEvt, this.markPieceHold.bind(this));
-        pieceEl.addEventListener(moveEvt, util.isTouch
-            //touch felt a bit laggy - decreasing callback frequency to ~25fps
-            ? util.throttle(this.updatePiecePosition.bind(this), 40) 
-            : this.updatePiecePosition.bind(this));
+        this.dnd = {
+            start : { name : events[0], handler: this.markPieceHold.bind(this) },
+             //touch felt a bit laggy - decreasing callback frequency to ~25fps
+            move : { name : events[1], handler: util.isTouch ? util.throttle(this.updatePiecePosition.bind(this), 40) : this.updatePiecePosition.bind(this) },
+            end : { name : events[2], handler: this.markPieceRelease.bind(this) }
+        };
         
-        //prevent loosing mousemove events when element does not follow cursor quick enough
-        if (!util.isTouch) {
-            document.body.addEventListener(moveEvt, this.checkPieceLost.bind(this))
-        }
-        pieceEl.addEventListener(stopEvt, this.markPieceRelease.bind(this));
+        document.body.addEventListener(this.dnd.start.name, this.dnd.start.handler );
     },
     
     markPieceHold: function(evt) {
         evt.preventDefault();
 
-        var node = null, originalEvt = evt, ox = oy = 0;
-        if (evt.changedTouches) {
-            node = evt.changedTouches[0].target;
-            originalEvt = evt.changedTouches[0];
-        } else {
-            this.mouseDragInProgress = true;
-            node = evt.target;
+        var node = evt.changedTouches ? evt.changedTouches[0].target : evt.target, 
+            originalEvt = evt.changedTouches ? evt.changedTouches[0] : evt, ox = 0, oy = 0;
+            
+        //listen to piece events only
+        if (!util.dom.hasClass(node, 'puzzle-piece')) {
+            return;
         }
         
         //calculate offset within a piece when piece is grabbed
@@ -141,6 +132,11 @@ PZ.view.Board.prototype = {
         oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top);
         node.dragOffset = {x: ox, y: oy};
         util.dom.addClass(node, 'held');
+        
+        //bind move and end handler
+        var b = document.body;
+        b.addEventListener(this.dnd.move.name, this.dnd.move.handler);
+        b.addEventListener(this.dnd.end.name, this.dnd.end.handler );
     },
     
     markPieceRelease: function(evt){
@@ -161,40 +157,32 @@ PZ.view.Board.prototype = {
         if (evt.changedTouches) {
             node = evt.changedTouches[0].target; 
         } else {
-            this.mouseDragInProgress = false;
             node = evt.target;
         }
+        
+        //remove move handler
+        var b = document.body;
+        b.removeEventListener(this.dnd.move.name, this.dnd.move.handler);
+        b.removeEventListener(this.dnd.end.name, this.dnd.end.handler );
+
+        
         updatedNodes.push(markRelease.bind(this)(node));
 
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },
     
-    checkPieceLost: function(evt) {
-        if (this.mouseDragInProgress) {
-            this.updatePiecePosition(evt);
-        }
-    },
-    
     updatePiecePosition: function(evt) {
         evt.preventDefault();
-        var self = this;
-        function markMove(touch) {
-            var node = touch.target,
-                offset = self.boardOffset;
-            
-            var isHeld = util.dom.hasClass(node, 'held');
-            //on desktop, leaving node area while moving mouse really fast
-            //might leave the node in 'held' state, we find it and update it
-            if (isHeld || (!isHeld && self.mouseDragInProgress && (node = document.querySelector('.puzzle-piece.held')))) {
-                node.style.left = (touch.pageX - offset.x - node.dragOffset.x) + 'px';
-                node.style.top = (touch.pageY - offset.y - node.dragOffset.y) + 'px';
-            }
-        }
         
-        if (evt.changedTouches) { //touch
-            markMove(evt.changedTouches[0]);
-        } else {
-            markMove(evt);
+        var node = evt.changedTouches ? evt.changedTouches[0].target : evt.target,
+            offset = this.boardOffset,
+            isHeld = util.dom.hasClass(node, 'held');
+            
+        //on desktop, leaving node area while moving mouse really fast
+        //might leave the node in 'held' state, we find it and update it
+        if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held')))) {
+            node.style.left = (evt.pageX - offset.x - node.dragOffset.x) + 'px';
+            node.style.top = (evt.pageY - offset.y - node.dragOffset.y) + 'px';
         }
     }
 };
