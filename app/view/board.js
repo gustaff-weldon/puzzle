@@ -132,6 +132,20 @@ PZ.view.Board.prototype = {
         oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top);
         node.dragOffset = {x: ox, y: oy};
         util.dom.addClass(node, 'held');
+        util.dom.addClass(node, 'held-main');
+        
+        //mark group pieces as well
+        var model = this.controller.model, 
+            gid  = model.pieceMap[node.id].groupId;
+        if (gid) {
+            model.matchGroups[gid].forEach(function(id){
+                if (id === node.id) {
+                    return;
+                }
+                var gnode = this.elPieces[id];
+                util.dom.addClass(gnode, 'held');
+            }.bind(this));
+        }        
         
         //bind move and end handler
         var b = document.body;
@@ -145,6 +159,7 @@ PZ.view.Board.prototype = {
         function markRelease(node){
             delete node.dragOffset;
             util.dom.removeClass(node, 'held');
+            util.dom.removeClass(node, 'held-main');
             node.parentNode.appendChild(node);
             return {
                 id : node.id,
@@ -165,8 +180,21 @@ PZ.view.Board.prototype = {
         b.removeEventListener(this.dnd.move.name, this.dnd.move.handler);
         b.removeEventListener(this.dnd.end.name, this.dnd.end.handler );
 
-        
+        //mark node as updated
         updatedNodes.push(markRelease.bind(this)(node));
+        
+        //also mark group nodes if any, since these has been moved as well
+        var model = this.controller.model, 
+            gid  = model.pieceMap[node.id].groupId;
+        if (gid) {
+            model.matchGroups[gid].forEach(function(id){
+                if (id === node.id) {
+                    return;
+                }
+                var gnode = this.elPieces[id];
+                updatedNodes.push(markRelease.bind(this)(gnode));
+            }.bind(this));
+        }
 
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },
@@ -176,13 +204,34 @@ PZ.view.Board.prototype = {
         
         var node = evt.changedTouches ? evt.changedTouches[0].target : evt.target,
             offset = this.boardOffset,
-            isHeld = util.dom.hasClass(node, 'held');
+            isHeld = util.dom.hasClass(node, 'held-main');
             
         //on desktop, leaving node area while moving mouse really fast
         //might leave the node in 'held' state, we find it and update it
         if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held')))) {
-            node.style.left = (evt.pageX - offset.x - node.dragOffset.x) + 'px';
-            node.style.top = (evt.pageY - offset.y - node.dragOffset.y) + 'px';
+            var newX = (evt.pageX - offset.x - node.dragOffset.x),
+                newY = (evt.pageY - offset.y - node.dragOffset.y),
+                moveX = newX - parseInt(node.style.left), 
+                moveY = newY - parseInt(node.style.top); 
+            
+            //update piece position
+            node.style.left = newX + 'px';
+            node.style.top = newY + 'px';
+            
+            //update group elements positions accoridngly (if any)
+            // when we grab a piece that has been matched, we want the whole group to move with that piece
+            var model = this.controller.model, 
+                gid  = model.pieceMap[node.id].groupId; 
+            if (gid) {
+                model.matchGroups[gid].forEach(function(id){
+                    if (id === node.id) {
+                        return;
+                    }
+                    var neigbour = this.elPieces[id];
+                    neigbour.style.left = parseInt(neigbour.style.left) + moveX + 'px';
+                    neigbour.style.top = parseInt(neigbour.style.top) + moveY + 'px';
+                }.bind(this));
+            }
         }
     }
 };

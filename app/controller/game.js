@@ -26,7 +26,7 @@ PZ.Game.prototype = {
     },
     
     buildModel: function(){
-        var pieces = this.calculatePieces(960, 640, 6, 4),
+        var pieces = this.calculatePieces(960, 640, 4, 3),
             pieceMap={};
         pieces.map(function(el) {
             pieceMap[el.id] = el;
@@ -98,6 +98,15 @@ PZ.Game.prototype = {
             pieces[i].posY = util.randomInt(minY, maxY);
         }
     },
+    
+    updatePositions: function(changedPieces) {
+        changedPieces.forEach(function(change) {
+            //retrieve pieces from model and set their new position
+            var piece = this.model.pieceMap[change.id];
+            piece.posX = change.x;
+            piece.posY = change.y;
+        }.bind(this));
+    },
 
     performMatching: function(changedPieces) {
         var matchedPieces = [], piece, i,
@@ -107,21 +116,36 @@ PZ.Game.prototype = {
         changedPieces.forEach(function(change) {
             //retrieve pieces from model and set their new position
             piece = this.model.pieceMap[change.id];
-            piece.posX = change.x;
-            piece.posY = change.y;
-
+            
             //check if piece is near enough one of its neighbours to be matched
             for (i = 0; i < 4; i++)  {
                 var matchResult,
                     neighbour = this.model.pieceMap[piece.nearest[i].id];
 
                 if (neighbour) {
+                    if (piece.groupId && piece.groupId == neighbour.groupId) {
+                        continue; //do not match twice
+                    }
+                    
                     matchResult = pieceMatch(piece, neighbour, piece.nearest[i].rel, dx, dy);
                     if (matchResult.matched) {
                         //piece matched, set new position that aligns it to matched neighbour
                         piece.posX+=matchResult.diffx;
                         piece.posY+=matchResult.diffy;
                         matchedPieces.push(piece.id);
+                        
+                        //update group elements position
+                        var model = this.model;
+                        piece.groupId && model.matchGroups[piece.groupId].forEach(function(id){
+                            if (id === piece.id) {
+                                return;
+                            }
+                            var groupPiece = model.pieceMap[id]; 
+                            groupPiece.posX+=matchResult.diffx;
+                            groupPiece.posY+=matchResult.diffy;
+                            matchedPieces.push(groupPiece.id);
+                        });
+                        
                         //update match groups
                         this.updateMatchGroups(piece, neighbour);
                         break;
@@ -160,7 +184,7 @@ PZ.Game.prototype = {
             result.diffx = diffx;
             result.diffy = diffy;
             if (result.matched){
-                util.log('Matched:', matchee.id, 'to', reference.id, relation, 'Result', result);
+                //util.log('Matched:', matchee.id, 'to', reference.id, relation, 'Result', result);
             }
             return result;
         }
@@ -192,7 +216,7 @@ PZ.Game.prototype = {
 
     /** Event handlers **/
     onShuffle : function(data) {
-        util.log('got shuffle');
+        //util.log('got shuffle');
         var maxX = document.body.offsetWidth - this.model.pieceWidth,
             maxY = document.body.offsetHeight - this.model.pieceHeight;
         this.shufflePieces(20, maxX - 20, 20, maxY - 20);
@@ -204,6 +228,7 @@ PZ.Game.prototype = {
     onUpdatePieces : function(data) {
         var ids = data.nodes; 
         //util.log(ids.length + ' piece(s) updated: ', ids);
+        this.updatePositions(ids);
         this.performMatching(ids);
     }
 };
