@@ -135,17 +135,9 @@ PZ.view.Board.prototype = {
         util.dom.addClass(node, 'held-main');
         
         //mark group pieces as well
-        var model = this.controller.model, 
-            gid  = model.pieceMap[node.id].groupId;
-        if (gid) {
-            model.matchGroups[gid].forEach(function(id){
-                if (id === node.id) {
-                    return;
-                }
-                var gnode = this.elPieces[id];
-                util.dom.addClass(gnode, 'held');
-            }.bind(this));
-        }        
+        this._groupOperation(node, function(groupNode) {
+            util.dom.addClass(groupNode, 'held');
+        });
         
         //bind move and end handler
         var b = document.body;
@@ -184,18 +176,10 @@ PZ.view.Board.prototype = {
         updatedNodes.push(markRelease.bind(this)(node));
         
         //also mark group nodes if any, since these has been moved as well
-        var model = this.controller.model, 
-            gid  = model.pieceMap[node.id].groupId;
-        if (gid) {
-            model.matchGroups[gid].forEach(function(id){
-                if (id === node.id) {
-                    return;
-                }
-                var gnode = this.elPieces[id];
-                updatedNodes.push(markRelease.bind(this)(gnode));
-            }.bind(this));
-        }
-
+        this._groupOperation(node, function(groupNode) {
+            updatedNodes.push(markRelease.bind(this)(groupNode));
+        });
+        
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },
     
@@ -208,7 +192,7 @@ PZ.view.Board.prototype = {
             
         //on desktop, leaving node area while moving mouse really fast
         //might leave the node in 'held' state, we find it and update it
-        if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held')))) {
+        if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held-main')))) {
             var newX = (evt.pageX - offset.x - node.dragOffset.x),
                 newY = (evt.pageY - offset.y - node.dragOffset.y),
                 moveX = newX - parseInt(node.style.left), 
@@ -220,18 +204,24 @@ PZ.view.Board.prototype = {
             
             //update group elements positions accoridngly (if any)
             // when we grab a piece that has been matched, we want the whole group to move with that piece
-            var model = this.controller.model, 
-                gid  = model.pieceMap[node.id].groupId; 
-            if (gid) {
-                model.matchGroups[gid].forEach(function(id){
-                    if (id === node.id) {
-                        return;
-                    }
-                    var neigbour = this.elPieces[id];
-                    neigbour.style.left = parseInt(neigbour.style.left) + moveX + 'px';
-                    neigbour.style.top = parseInt(neigbour.style.top) + moveY + 'px';
-                }.bind(this));
-            }
+            this._groupOperation(node, function(groupNode) {
+                groupNode.style.left = parseInt(groupNode.style.left) + moveX + 'px';
+                groupNode.style.top = parseInt(groupNode.style.top) + moveY + 'px';
+            });
+        }
+    },
+    
+    _groupOperation: function(node, operation) {
+        var model = this.controller.model, 
+            gid  = model.pieceMap[node.id].groupId; 
+        if (gid) {
+            model.matchGroups[gid].forEach(function(id){
+                if (id === node.id) {
+                    return;
+                }
+                var groupNode = this.elPieces[id];
+                operation.call(this, groupNode);
+            }.bind(this));
         }
     }
 };
