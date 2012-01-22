@@ -129,15 +129,23 @@ PZ.view.Board.prototype = {
         
         
         //calculate offset within a piece when piece is grabbed
-        ox = (originalEvt.pageX - this.boardOffset.x) - parseInt(node.style.left, 10) ;
-        oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top, 10);
+        var left = parseInt(node.style.left, 10),
+            top =  parseInt(node.style.top, 10);
+        ox = (originalEvt.pageX - this.boardOffset.x) - left ;
+        oy = (originalEvt.pageY - this.boardOffset.y) - top;
         node.dragOffset = {x: ox, y: oy};
+        node.pos = {top: top, left: left};
         util.dom.addClass(node, 'held');
         util.dom.addClass(node, 'held-main');
-        
+
         //mark group pieces as well
-        this._groupOperation(node, function(groupNode) {
+        this._groupOperation(node, function(node, groupNode) {
             util.dom.addClass(groupNode, 'held');
+            node.group.
+            groupNode.pos = {
+                left: parseInt(groupNode.style.left, 10),
+                top: parseInt(groupNode.style.top, 10)
+            };
         });
         
         //bind move and end handler
@@ -151,6 +159,7 @@ PZ.view.Board.prototype = {
         
         function markRelease(node){
             delete node.dragOffset;
+            delete node.pos;
             util.dom.removeClass(node, 'held');
             util.dom.removeClass(node, 'held-main');
             node.parentNode.appendChild(node);
@@ -172,7 +181,7 @@ PZ.view.Board.prototype = {
         updatedNodes.push(markRelease.bind(this)(node));
         
         //also mark group nodes if any, since these has been moved as well
-        this._groupOperation(node, function(groupNode) {
+        this._groupOperation(node, function(node, groupNode) {
             updatedNodes.push(markRelease.bind(this)(groupNode));
         });
         
@@ -180,20 +189,26 @@ PZ.view.Board.prototype = {
     },
     
     updatePiecePosition: function(evt) {
+        /** TODO PERFORMANCE IMPROVEMENTS, that suck... remove offset? remove parse int, store int in node
+        improve group operation performance (groups do not change during dnd - until drop)
+        **/
         evt.preventDefault();
         
         var	evt =  evt.changedTouches ? evt.changedTouches[0] : evt,
             node = evt.target,
-            offset = this.boardOffset,
-            isHeld = util.dom.hasClass(node, 'held-main');
+            offset = this.boardOffset;//,
+            isHeld = node.dragOffset;
             
         //on desktop, leaving node area while moving mouse really fast
         //might leave the node in 'held' state, we find it and update it
         if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held-main')))) {
             var newX = (evt.pageX - offset.x - node.dragOffset.x),
                 newY = (evt.pageY - offset.y - node.dragOffset.y),
-                moveX = newX - parseInt(node.style.left, 10), 
-                moveY = newY - parseInt(node.style.top, 10); 
+                moveX = newX - node.pos.left, 
+                moveY = newY - node.pos.top;
+            
+            node.pos.left = newX;
+            node.pos.top = newY;
             
             //update piece position
             node.style.left = newX + 'px';
@@ -201,9 +216,13 @@ PZ.view.Board.prototype = {
             
             //update group elements positions accoridngly (if any)
             // when we grab a piece that has been matched, we want the whole group to move with that piece
-            this._groupOperation(node, function(groupNode) {
-                groupNode.style.left = parseInt(groupNode.style.left, 10) + moveX + 'px';
-                groupNode.style.top = parseInt(groupNode.style.top, 10) + moveY + 'px';
+            this._groupOperation(node, function(node, groupNode) {
+                var left = groupNode.pos.left + moveX, 
+                    top = groupNode.pos.top + moveY;
+                groupNode.style.left = left + 'px';
+                groupNode.style.top = top + 'px';
+                groupNode.pos.left = left;
+                groupNode.pos.top = top;
             });
         }
     },
@@ -217,7 +236,7 @@ PZ.view.Board.prototype = {
                     return;
                 }
                 var groupNode = this.elPieces[id];
-                operation.call(this, groupNode);
+                operation.call(this, node, groupNode);
             }.bind(this));
         }
     }
