@@ -127,9 +127,10 @@ PZ.view.Board.prototype = {
             return;
         }
         
+        
         //calculate offset within a piece when piece is grabbed
-        ox = (originalEvt.pageX - this.boardOffset.x) - parseInt(node.style.left) ;
-        oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top);
+        ox = (originalEvt.pageX - this.boardOffset.x) - parseInt(node.style.left, 10) ;
+        oy = (originalEvt.pageY - this.boardOffset.y) - parseInt(node.style.top, 10);
         node.dragOffset = {x: ox, y: oy};
         util.dom.addClass(node, 'held');
         util.dom.addClass(node, 'held-main');
@@ -160,12 +161,7 @@ PZ.view.Board.prototype = {
             };
         }
 
-        var node = null, updatedNodes = [];
-        if (evt.changedTouches) {
-            node = evt.changedTouches[0].target; 
-        } else {
-            node = evt.target;
-        }
+        var node = evt.changedTouches ? node = evt.changedTouches[0].target : evt.target, updatedNodes = [];
         
         //remove move handler
         var b = document.body;
@@ -186,7 +182,8 @@ PZ.view.Board.prototype = {
     updatePiecePosition: function(evt) {
         evt.preventDefault();
         
-        var node = evt.changedTouches ? evt.changedTouches[0].target : evt.target,
+        var	evt =  evt.changedTouches ? evt.changedTouches[0] : evt,
+            node = evt.target,
             offset = this.boardOffset,
             isHeld = util.dom.hasClass(node, 'held-main');
             
@@ -195,8 +192,8 @@ PZ.view.Board.prototype = {
         if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held-main')))) {
             var newX = (evt.pageX - offset.x - node.dragOffset.x),
                 newY = (evt.pageY - offset.y - node.dragOffset.y),
-                moveX = newX - parseInt(node.style.left), 
-                moveY = newY - parseInt(node.style.top); 
+                moveX = newX - parseInt(node.style.left, 10), 
+                moveY = newY - parseInt(node.style.top, 10); 
             
             //update piece position
             node.style.left = newX + 'px';
@@ -205,8 +202,8 @@ PZ.view.Board.prototype = {
             //update group elements positions accoridngly (if any)
             // when we grab a piece that has been matched, we want the whole group to move with that piece
             this._groupOperation(node, function(groupNode) {
-                groupNode.style.left = parseInt(groupNode.style.left) + moveX + 'px';
-                groupNode.style.top = parseInt(groupNode.style.top) + moveY + 'px';
+                groupNode.style.left = parseInt(groupNode.style.left, 10) + moveX + 'px';
+                groupNode.style.top = parseInt(groupNode.style.top, 10) + moveY + 'px';
             });
         }
     },
