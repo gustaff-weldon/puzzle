@@ -127,7 +127,6 @@ PZ.view.Board.prototype = {
             return;
         }
         
-        
         //calculate offset within a piece when piece is grabbed
         var left = parseInt(node.style.left, 10),
             top =  parseInt(node.style.top, 10);
@@ -135,12 +134,15 @@ PZ.view.Board.prototype = {
         oy = (originalEvt.pageY - this.boardOffset.y) - top;
         node.dragOffset = {x: ox, y: oy};
         node.pos = {top: top, left: left};
+        node.group = [];
+        
         util.dom.addClass(node, 'held');
         util.dom.addClass(node, 'held-main');
 
         //mark group pieces as well
         this._groupOperation(node, function(node, groupNode) {
             util.dom.addClass(groupNode, 'held');
+            node.group.push(groupNode);
             groupNode.pos = {
                 left: parseInt(groupNode.style.left, 10),
                 top: parseInt(groupNode.style.top, 10)
@@ -157,8 +159,7 @@ PZ.view.Board.prototype = {
         evt.preventDefault();
         
         function markRelease(node){
-            delete node.dragOffset;
-            delete node.pos;
+            
             util.dom.removeClass(node, 'held');
             util.dom.removeClass(node, 'held-main');
             node.parentNode.appendChild(node);
@@ -180,9 +181,14 @@ PZ.view.Board.prototype = {
         updatedNodes.push(markRelease.bind(this)(node));
         
         //also mark group nodes if any, since these has been moved as well
-        this._groupOperation(node, function(node, groupNode) {
-            updatedNodes.push(markRelease.bind(this)(groupNode));
+        var self = this;
+        node.group.forEach(function(groupNode) {
+            updatedNodes.push(markRelease.bind(self)(groupNode));
         });
+        
+        delete node.dragOffset;
+        delete node.pos;
+        delete node.group;
         
         this.fireEvent('piecemove', {nodes : updatedNodes});
     },
@@ -215,7 +221,7 @@ PZ.view.Board.prototype = {
             
             //update group elements positions accoridngly (if any)
             // when we grab a piece that has been matched, we want the whole group to move with that piece
-            this._groupOperation(node, function(node, groupNode) {
+            node.group.forEach(function(groupNode) {
                 var left = groupNode.pos.left + moveX, 
                     top = groupNode.pos.top + moveY;
                 groupNode.style.left = left + 'px';
