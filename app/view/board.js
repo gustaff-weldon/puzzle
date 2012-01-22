@@ -141,7 +141,6 @@ PZ.view.Board.prototype = {
         //mark group pieces as well
         this._groupOperation(node, function(node, groupNode) {
             util.dom.addClass(groupNode, 'held');
-            node.group.
             groupNode.pos = {
                 left: parseInt(groupNode.style.left, 10),
                 top: parseInt(groupNode.style.top, 10)
