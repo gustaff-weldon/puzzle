@@ -38,13 +38,6 @@ body {
     background: #000;
 }
 
-.puzzle-board {
-    width: 960px;
-    min-height: 640px;
-    margin: 0 auto 160px;
-    position: relative;
-}
-
 .puzzle-board img {
     max-width: 100%;
 }
@@ -53,27 +46,40 @@ body {
     position: absolute;
     background: transparent none no-repeat;
     -webkit-transition: outline 0.4s linear;
-    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0px #333;
-    box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0px #333;
+    -moz-transition: outline 0.4s linear;
+    -o-transition: outline 0.4s linear;
+    -ms-transition: outline 0.4s linear;
+    
+    -webkit-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0 #333;
+    -moz-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0 #333;
+    box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 0 #333;
     
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0);
+    -o-transform: translate3d(0, 0, 0);
+    -ms-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
 }
 
 .full .puzzle-piece {
-    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #333;
-    box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #333;
+    -webkit-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #333;
+    -moz-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #333;
+    box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 1px 1px 3px 1px #333;
 }
 
 .puzzle-piece.held {
     z-index: 9999;
     opacity: 0.7;
-    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 10px 10px 10px black;
-    box-shadow: inset 0px 0px 5px 1px rgba(0,0,0,0.5), 7px 7px 20px black;
+    -webkit-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 10px 10px 10px black;
+    -moz-box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 10px 10px 10px black;
+    box-shadow: inset 0 0 5px 1px rgba(0,0,0,0.5), 7px 7px 20px black;
 }
 
 .puzzle-piece.matched {
     -webkit-transition: outline 0.4s linear;
+    -moz-transition: outline 0.4s linear;
+    -o-transition: outline 0.4s linear;
+    -ms-transition: outline 0.4s linear;
+    transition: outline 0.4s linear;
     outline: 1px solid #F2B705;
 }

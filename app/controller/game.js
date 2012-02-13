@@ -12,7 +12,13 @@ PZ.Game.LEFT = 4;
 
 PZ.Game.prototype = {
     start: function() {
-        this.model = this.buildModel();
+        this.model = this.buildModel({
+            width: 960, 
+            height: 640, 
+            countX: 4, 
+            countY : 4, 
+            photo: './app/assets/test.jpg' 
+        });
         this.view = new PZ.view.Board(this);
         this.view.addEventListeners({
             'piecemove': this.onUpdatePieces.bind(this),
@@ -25,13 +31,15 @@ PZ.Game.prototype = {
         });
     },
     
-    buildModel: function(){
-        var pieces = this.calculatePieces(960, 640, 4, 3),
+    buildModel: function(config){
+        var pieces = this.calculatePieces(config.width, config.height, config.countX, config.countY),
             pieceMap={};
         pieces.map(function(el) {
             pieceMap[el.id] = el;
         });
         return {
+            width: config.width,
+            height: config.height,
             matchGroups: {},
             matchDeltaX: util.isTouch ? 30 : 15,
             matchDeltaY: util.isTouch ? 30 : 15,
@@ -39,14 +47,14 @@ PZ.Game.prototype = {
             pieceHeight: pieces[0].height, 
             pieces: pieces,
             pieceMap : pieceMap,
-            photoPath: './app/assets/test.jpg'
+            photoPath: config.photo
         };
     },
     
     calculatePieces: function(photoWidth, photoHeight, countX, countY){
         var pieceWidth = photoWidth / countX,
             pieceHeight = photoHeight / countY,
-            pieces = [], piece = null, offsetX, offsetY;
+            pieces = [], piece = null; 
 
         function generateId(x,y) {
             return 'p_' + x + '_' + y;

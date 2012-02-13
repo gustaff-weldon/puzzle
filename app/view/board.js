@@ -3,7 +3,6 @@ namespace('PZ.view');
 PZ.view.Board = function(controller) {
     this.controller = controller; //remove coupling, just register listener on events?
     this.boardEl = null;
-    this.boardOffset = null;
     this.elPieces = {};
     
     controller.addEventListeners({
@@ -21,10 +20,9 @@ PZ.view.Board.prototype = {
         document.body.appendChild(boardDiv);
         
         this.boardEl = boardDiv;
-        this.boardOffset = util.dom.offset(this.boardEl);
     },
     
-    buildPiece: function(photoPath, piece) {
+    buildPiece: function(piece, config) {
             var pieceEl = document.createElement('div');
             pieceEl.id = piece.id;
             pieceEl.className = 'puzzle-piece';
@@ -32,9 +30,9 @@ PZ.view.Board.prototype = {
             util.mixin(pieceEl.style, {
                 width: piece.width + 'px',
                 height: piece.height + 'px',
-                left: piece.posX + 'px',
-                top: piece.posY + 'px',
-                backgroundImage: 'url(' + photoPath + ')',
+                left: piece.posX + config.offsetX +'px',
+                top: piece.posY + config.offsetY + 'px',
+                backgroundImage: 'url(' + config.photoPath + ')',
                 backgroundPosition: ' -' + piece.posX + 'px'
                                   + ' -' + piece.posY + 'px'
             });
@@ -59,10 +57,12 @@ PZ.view.Board.prototype = {
         var docFragment = document.createDocumentFragment(),
             i, pieceEl,
             model = data.model,
-            len = model.pieces.length;
+            len = model.pieces.length,
+            offsetX = (innerWidth - model.width) /2, 
+            offsetY = (innerHeight - model.height) /2;
         
         for (i = 0; i < len; i++) {
-            pieceEl = this.buildPiece(model.photoPath, model.pieces[i]);
+            pieceEl = this.buildPiece(model.pieces[i], {photoPath: model.photoPath, offsetX: offsetX, offsetY: offsetY});
             this.elPieces[pieceEl.id] = pieceEl;  
             docFragment.appendChild(pieceEl);
         }
@@ -85,8 +85,7 @@ PZ.view.Board.prototype = {
         }
 
         var pieces = data.model.pieces,
-                len = pieces.length, i, id,
-                offset = this.boardOffset;
+            len = pieces.length, i, id;
         for (i = 0; i < len; i++) {
             id = pieces[i].id;
 
@@ -96,8 +95,8 @@ PZ.view.Board.prototype = {
             }
             else {}
             util.mixin(this.elPieces[id].style, {
-                left: (pieces[i].posX  - offset.x) + 'px',
-                top: (pieces[i].posY  - offset.y) + 'px'
+                left: pieces[i].posX + 'px',
+                top: pieces[i].posY + 'px'
             });
         }
     },
@@ -130,8 +129,8 @@ PZ.view.Board.prototype = {
         //calculate offset within a piece when piece is grabbed
         var left = parseInt(node.style.left, 10),
             top =  parseInt(node.style.top, 10);
-        ox = (originalEvt.pageX - this.boardOffset.x) - left ;
-        oy = (originalEvt.pageY - this.boardOffset.y) - top;
+        ox = originalEvt.pageX - left ;
+        oy = originalEvt.pageY - top;
         node.dragOffset = {x: ox, y: oy};
         node.pos = {top: top, left: left};
         node.group = [];
@@ -165,8 +164,8 @@ PZ.view.Board.prototype = {
             node.parentNode.appendChild(node);
             return {
                 id : node.id,
-                x : parseInt(node.style.left, 10) + this.boardOffset.x,
-                y : parseInt(node.style.top, 10) + this.boardOffset.y
+                x : parseInt(node.style.left, 10),
+                y : parseInt(node.style.top, 10)
             };
         }
 
@@ -201,14 +200,13 @@ PZ.view.Board.prototype = {
         
         var	evt =  evt.changedTouches ? evt.changedTouches[0] : evt,
             node = evt.target,
-            offset = this.boardOffset;//,
             isHeld = node.dragOffset;
             
         //on desktop, leaving node area while moving mouse really fast
         //might leave the node in 'held' state, we find it and update it
         if (isHeld || (!isHeld && (node = document.querySelector('.puzzle-piece.held-main')))) {
-            var newX = (evt.pageX - offset.x - node.dragOffset.x),
-                newY = (evt.pageY - offset.y - node.dragOffset.y),
+            var newX = evt.pageX - node.dragOffset.x,
+                newY = evt.pageY - node.dragOffset.y,
                 moveX = newX - node.pos.left, 
                 moveY = newY - node.pos.top;
             
